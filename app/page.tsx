@@ -90,7 +90,7 @@ export default function Home() {
         e.preventDefault()
         if (!title || !url || !user) return
 
-        await supabase.from('bookmarks').insert([
+        const { error } = await supabase.from('bookmarks').insert([
             {
                 title,
                 url,
@@ -98,12 +98,32 @@ export default function Home() {
             },
         ])
 
-        setTitle('')
-        setUrl('')
+        if (!error) {
+            // Manually refetch bookmarks to update UI immediately
+            const { data } = await supabase
+                .from('bookmarks')
+                .select('*')
+                .order('created_at', { ascending: false })
+
+            if (data) setBookmarks(data)
+
+            setTitle('')
+            setUrl('')
+        }
     }
 
     const handleDeleteBookmark = async (id: string) => {
-        await supabase.from('bookmarks').delete().eq('id', id)
+        const { error } = await supabase.from('bookmarks').delete().eq('id', id)
+
+        if (!error) {
+            // Manually refetch bookmarks to update UI immediately
+            const { data } = await supabase
+                .from('bookmarks')
+                .select('*')
+                .order('created_at', { ascending: false })
+
+            if (data) setBookmarks(data)
+        }
     }
 
     if (loading) {
