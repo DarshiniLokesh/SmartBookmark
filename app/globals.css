@@ -3,21 +3,47 @@
 @tailwind utilities;
 
 :root {
-    --background: #ffffff;
-    --foreground: #171717;
+    --background: #f1f5f9;
+    --foreground: #020617;
+    --card: #ffffff;
+    --border: #e2e8f0;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --background: #0a0a0a;
-        --foreground: #ededed;
-    }
+.dark {
+    --background: #020617;
+    --foreground: #f8fafc;
+    --card: #0f172a;
+    --border: #1e293b;
 }
 
 body {
     color: var(--foreground);
     background: var(--background);
     font-family: Arial, Helvetica, sans-serif;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+h1,
+h2,
+h3 {
+    color: var(--foreground) !important;
+}
+
+p {
+    color: var(--foreground);
+    opacity: 0.8;
+}
+
+.bookmark-card {
+    background-color: var(--card) !important;
+    border-color: var(--border) !important;
+    color: var(--foreground) !important;
+}
+
+.input-field {
+    background-color: var(--card) !important;
+    border-color: var(--border) !important;
+    color: var(--foreground) !important;
 }
 
 @layer utilities {
