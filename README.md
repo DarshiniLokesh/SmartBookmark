@@ -22,7 +22,7 @@ In a world of information overload, traditional bookmarking is dead. We created 
 
 ---
 
-## 🧠 The Developer's Journey: Struggles & Triumphs
+## 🧠 The Developer's Journey -  Struggles 
 *A deep dive into the engineering challenges overcome during the build.*
 
 ### 1. The "AI-on-the-Edge" Challenge
@@ -39,15 +39,8 @@ In a world of information overload, traditional bookmarking is dead. We created 
 **The Struggle:** During development, I faced several `PGRST204` schema cache errors when evolving the database.
 **The Solution:** Instead of letting the app fail, I built a **Resilient Data Fetching Layer**. The application now intelligently detects if specific database columns (like tracking metrics) are unavailable and automatically falls back to a "Graceful Degradation" mode. This ensures 100% uptime for core bookmarking features regardless of background schema updates.
 
----
 
-## 💼 Why this interests Recrutiers & Technical Leaders
-This project demonstrates more than just coding skills; it showcases **Systems Thinking** and **UX Engineering**:
 
-- **Performance First**: Optimized state management to ensure the UI feels snappy even with real-time listeners.
-- **Security Conscious**: Implemented strict Row Level Security (RLS) policies in Supabase to ensure users can only access their own private intelligence.
-- **Premium Aesthetics**: A focus on "Interface Juice"—micro-animations, gradient overlays, and clear visual hierarchy that rivals high-end SaaS platforms.
-- **Full-Stack Ownership**: Mastery over the entire lifecycle, from DB migrations to production-level middleware.
 
 ---
 
@@ -74,4 +67,4 @@ This project demonstrates more than just coding skills; it showcases **Systems T
    ```
 
 ---
-*Developed with ❤️ to redefine how we organize the web.*
+
