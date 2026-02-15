@@ -71,7 +71,7 @@ export default function Home() {
         const { data, error } = await supabase
             .from('bookmarks')
             .select('*')
-            .order('visit_count', { ascending: false, nullsFirst: false })
+            .order('visit_count', { ascending: false })
             .order('created_at', { ascending: false })
 
         if (error) {
@@ -255,8 +255,8 @@ export default function Home() {
                             key={cat}
                             onClick={() => setSelectedCategory(cat)}
                             className={`px-6 py-2.5 rounded-full text-sm font-black transition-all border shrink-0 ${selectedCategory === cat
-                                    ? 'bg-blue-600 text-white border-blue-500 shadow-xl shadow-blue-500/30 -translate-y-0.5'
-                                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 hover:border-blue-300'
+                                ? 'bg-blue-600 text-white border-blue-500 shadow-xl shadow-blue-500/30 -translate-y-0.5'
+                                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 hover:border-blue-300'
                                 }`}
                         >
                             {cat === 'All' ? '⚡ All' : cat}
