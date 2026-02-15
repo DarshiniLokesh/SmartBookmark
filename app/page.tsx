@@ -21,6 +21,7 @@ export default function Home() {
     const [url, setUrl] = useState('')
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedCategory, setSelectedCategory] = useState('All')
+    const [isRefreshing, setIsRefreshing] = useState(false)
 
     const categories = ['All', ...Array.from(new Set(bookmarks.map(b => {
         if (b.url.includes('github') || b.url.includes('stack') || b.url.includes('api')) return 'Dev Tools';
@@ -57,6 +58,20 @@ export default function Home() {
     }, [supabase.auth])
 
     useEffect(() => {
+        const handleRefresh = () => {
+            if (document.visibilityState === 'visible') {
+                fetchBookmarks()
+            }
+        }
+        window.addEventListener('visibilitychange', handleRefresh)
+        window.addEventListener('focus', fetchBookmarks)
+        return () => {
+            window.removeEventListener('visibilitychange', handleRefresh)
+            window.removeEventListener('focus', fetchBookmarks)
+        }
+    }, [user])
+
+    useEffect(() => {
         if (isDarkMode) {
             document.documentElement.classList.add('dark')
             localStorage.setItem('theme', 'dark')
@@ -68,20 +83,27 @@ export default function Home() {
 
     const fetchBookmarks = async () => {
         if (!user) return
-        const { data, error } = await supabase
-            .from('bookmarks')
-            .select('*')
-            .order('visit_count', { ascending: false })
-            .order('created_at', { ascending: false })
-
-        if (error) {
-            const { data: fallbackData } = await supabase
+        setIsRefreshing(true)
+        try {
+            const { data, error } = await supabase
                 .from('bookmarks')
                 .select('*')
+                .order('visit_count', { ascending: false })
                 .order('created_at', { ascending: false })
-            if (fallbackData) setBookmarks(fallbackData as Bookmark[])
-        } else if (data) {
-            setBookmarks(data as Bookmark[])
+
+            if (error) {
+                const { data: fallbackData } = await supabase
+                    .from('bookmarks')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                if (fallbackData) setBookmarks(fallbackData as Bookmark[])
+            } else if (data) {
+                setBookmarks(data as Bookmark[])
+            }
+        } catch (err) {
+            console.error('Fetch failed', err)
+        } finally {
+            setIsRefreshing(false)
         }
     }
 
@@ -132,18 +154,27 @@ export default function Home() {
         e.preventDefault()
         if (!title || !url || !user) return
 
-        const finalTitle = title.length < 3 ? new URL(url).hostname.replace('www.', '') : title;
+        let finalTitle = title;
+        if (title.length < 3) {
+            try {
+                finalTitle = new URL(url).hostname.replace('www.', '');
+            } catch (err) {
+                finalTitle = title;
+            }
+        }
 
         const { error } = await supabase.from('bookmarks').insert([
             {
                 title: finalTitle,
                 url,
                 user_id: user.id,
-                visit_count: 0
             },
         ])
 
-        if (!error) {
+        if (error) {
+            console.error('Error adding bookmark:', error)
+            alert('Failed to add bookmark: ' + error.message)
+        } else {
             setTitle('')
             setUrl('')
             fetchBookmarks()
@@ -185,25 +216,26 @@ export default function Home() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin text-4xl">✨</div>
+            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950">
+                <div className="animate-bounce text-6xl mb-4">📚</div>
+                <div className="animate-pulse text-xl font-bold text-blue-600">Initializing Smart Library...</div>
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-500">
+        <div className="min-h-screen transition-colors duration-500">
             <div className="container mx-auto px-4 py-12 max-w-4xl">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-12">
                     <div>
-                        <h1 className="text-5xl font-black tracking-tight mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+                        <h1 className="text-5xl font-black tracking-tight mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                             Smart Library
                         </h1>
                         <div className="flex items-center gap-2">
-                            <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
-                            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
-                                AI synced for <span className="text-blue-600 dark:text-blue-400 font-bold">{user?.email}</span>
+                            <div className={`w-2.5 h-2.5 rounded-full ${isRefreshing ? 'bg-blue-400 animate-spin' : 'bg-green-500 animate-pulse'}`}></div>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm font-bold">
+                                {isRefreshing ? 'Syncing...' : `AI synced for ${user?.email}`}
                             </p>
                         </div>
                     </div>
