@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { User } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
@@ -33,6 +33,32 @@ export default function Home() {
     const [isDarkMode, setIsDarkMode] = useState(false)
     const router = useRouter()
     const supabase = createClient()
+
+    const fetchBookmarks = useCallback(async () => {
+        if (!user) return
+        setIsRefreshing(true)
+        try {
+            const { data, error } = await supabase
+                .from('bookmarks')
+                .select('*')
+                .order('visit_count', { ascending: false })
+                .order('created_at', { ascending: false })
+
+            if (error) {
+                const { data: fallbackData } = await supabase
+                    .from('bookmarks')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                if (fallbackData) setBookmarks(fallbackData as Bookmark[])
+            } else if (data) {
+                setBookmarks(data as Bookmark[])
+            }
+        } catch (err) {
+            console.error('Fetch failed', err)
+        } finally {
+            setIsRefreshing(false)
+        }
+    }, [user, supabase])
 
     useEffect(() => {
         // Get initial user
@@ -69,7 +95,7 @@ export default function Home() {
             window.removeEventListener('visibilitychange', handleRefresh)
             window.removeEventListener('focus', fetchBookmarks)
         }
-    }, [user])
+    }, [user, fetchBookmarks])
 
     useEffect(() => {
         if (isDarkMode) {
@@ -81,31 +107,7 @@ export default function Home() {
         }
     }, [isDarkMode])
 
-    const fetchBookmarks = async () => {
-        if (!user) return
-        setIsRefreshing(true)
-        try {
-            const { data, error } = await supabase
-                .from('bookmarks')
-                .select('*')
-                .order('visit_count', { ascending: false })
-                .order('created_at', { ascending: false })
 
-            if (error) {
-                const { data: fallbackData } = await supabase
-                    .from('bookmarks')
-                    .select('*')
-                    .order('created_at', { ascending: false })
-                if (fallbackData) setBookmarks(fallbackData as Bookmark[])
-            } else if (data) {
-                setBookmarks(data as Bookmark[])
-            }
-        } catch (err) {
-            console.error('Fetch failed', err)
-        } finally {
-            setIsRefreshing(false)
-        }
-    }
 
     useEffect(() => {
         if (!user) return
@@ -143,7 +145,7 @@ export default function Home() {
         return () => {
             supabase.removeChannel(channel)
         }
-    }, [user, supabase])
+    }, [user, supabase, fetchBookmarks])
 
     const handleSignOut = async () => {
         await supabase.auth.signOut()
@@ -158,7 +160,7 @@ export default function Home() {
         if (title.length < 3) {
             try {
                 finalTitle = new URL(url).hostname.replace('www.', '');
-            } catch (err) {
+            } catch {
                 finalTitle = title;
             }
         }
