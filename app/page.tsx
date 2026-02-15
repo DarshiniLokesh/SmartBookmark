@@ -100,7 +100,7 @@ export default function Home() {
             } else if (data) {
                 setBookmarks(data as Bookmark[])
             }
-        } catch (err) {
+        } catch (_) {
             console.error('Fetch failed', err)
         } finally {
             setIsRefreshing(false)
@@ -158,7 +158,7 @@ export default function Home() {
         if (title.length < 3) {
             try {
                 finalTitle = new URL(url).hostname.replace('www.', '');
-            } catch (err) {
+            } catch (_) {
                 finalTitle = title;
             }
         }
